@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+# See LICENSE for license information.
+# SPDX-License-Identifier: Apache-2.0
+
+#MODULE_CONFIG#
+
+export ARCHER_OPTIONS=""
+export OMP_TOOL_LIBRARIES="libompt_profiler.so"
+export PROFILER_TOOL_LIBRARIES=""
+export PROFILER_OPTIONS="timer=0"
+export TSAN_OPTIONS="report_bugs=0 exitcode=0"
+
+
+#PREPROCESS##
+
+cd #EXEC_PATH#
+
+./#EXECUTABLE# #ARGS_EXECUTABLE#
+
+#POSTPROCESS#
+
+if [ $(stat -c "%X" .) -lt $[$(date +%s) - 15]  ];
+  then touch done;
+fi

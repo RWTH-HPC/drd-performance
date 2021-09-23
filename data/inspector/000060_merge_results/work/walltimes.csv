@@ -1,0 +1,10 @@
+"application","config","numthreads","output_type","wtime"
+"351.bwaves","base-none","12","profiler",8.173125e+00
+"351.bwaves","ixe-base-none","12","profiler",7.498111e+02
+"351.bwaves","ixe-detail-none","12","profiler",4.139202e+03
+"351.bwaves","archer-noread-none","12","profiler",1.387795e+02
+"351.bwaves","base-profiler","12","profiler",8.252721e+00
+"351.bwaves","ixe-base-profiler","12","profiler",7.527307e+02
+"351.bwaves","ixe-detail-profiler","12","profiler",4.145325e+03
+"351.bwaves","archer-noread-profiler","12","profiler",1.382318e+02
+

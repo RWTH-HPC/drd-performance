@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+
+  <include-path>
+      <path>.</path>
+      <path>${templatedir}</path>
+  </include-path>
+  
+  <benchmark name="SPEC-builder" outpath="#MASTER_WP_PATH#">
+  
+    <parameterset name="builder_common_pset" init_with="common_jube.xml:common_pset">
+      <parameter name="jube_master_benchmark_home">#MASTER_HOME#</parameter>
+      <parameter name="spec_home">$${SPEC}</parameter>
+      <parameter name="spec_outpath">#SPEC_OUTPUT_ROOT#</parameter>
+    </parameterset>
+    
+    <parameterset name="spec_platform_pset" init_with="spec_config.xml:spec_platform_pset">
+        <parameter name="hw_ncores" mode="python" type="int" >
+            $hw_nchips * $hw_ncoresperchip
+        </parameter>
+    </parameterset>
+    
+    <parameterset name="builder_fixed_params">
+      <parameter name="application">#APPLICATION#</parameter>
+      <parameter name="app_name" mode="shell">echo $application | cut -d . -f 2 | cut -d _ -f 1 | tr -d '\n'</parameter>
+      <parameter name="problem_size">#PROBLEM_SIZE#</parameter>
+    </parameterset>
+    
+    <parameterset name="builder_changing_params">
+      <parameter name="meas_state" mode="python">
+        ",".join("#MEAS_STATES#".split(",")[1:])
+      </parameter>
+      
+      <parameter name="compiler_variant">#COMPILER_VARIANTS#</parameter>
+      <parameter name="tool_variant" mode="python">'$compiler_variant'.split('-')[0]</parameter>
+    </parameterset>
+    
+    <!-- Parameters for the SPEC config file -->
+    <parameterset name="spec_config_pset">
+        <parameter name="extension">${compiler_variant}-${meas_state}</parameter>
+        <parameter name="tune">base</parameter>
+        <parameter name="benchmark_home">${spec_outpath}/benchspec/OMP2012/${application}</parameter>
+    
+        <parameter name="spec_config_template">spec-jube-config.${spec_config_ext}.in</parameter>
+        <parameter name="spec_config_ext">cfg</parameter>
+        <parameter name="spec_config_prefix" mode="python">'-'.join("${hw_model}-${compiler_vendor}".split())</parameter>
+        <parameter name="spec_config_file">${spec_config_prefix}-${extension}-${jube_benchmark_padid}.${spec_config_ext}</parameter>
+        <parameter name="spec_config_path">${spec_home}/config</parameter>
+    </parameterset>
+    
+    <!-- Compile commands -->
+    <parameterset name="spec_compiler_pset" init_with="spec_config.xml:spec_compiler_pset">
+      <parameter name="instrumenter" mode="python">
+            {'scorep' : 'scorep --nocompiler --user --thread=pthread --noopenmp'
+            }.get('$meas_state','')
+        </parameter>
+        
+        <parameter name="sp_version_cmd" mode="python">
+          {'scorep' : "scorep-config --scorep-revision | tr -d '\n'"
+          }.get('$meas_state','')
+        </parameter>
+        <parameter name="sp_version" mode="shell">eval $sp_version_cmd</parameter>
+        <parameter name="instrumenter_version" mode="python">
+            {'scorep' : '$sp_version'
+            }.get('$meas_state','n/a')
+        </parameter>
+        
+        <parameter name="cc" mode="python">
+            {
+              'base'    : '${instrumenter} ${c_compiler} -g -O3 -fopenmp',
+              'ixe'    : '${instrumenter} ${c_compiler} -g -O3 -fopenmp',
+              'tsan'    : '${instrumenter} ${c_compiler} -g -O3 -fopenmp -fsanitize=thread',
+              'archer'  : '${instrumenter} ${c_compiler} -g -O3 -fopenmp -fsanitize=thread',
+            }.get('$tool_variant')
+        </parameter>
+        <parameter name="cxx" mode="python">
+            {
+              'base'    : '${instrumenter} ${cxx_compiler} -g -O3 -fopenmp',
+              'ixe'    : '${instrumenter} ${cxx_compiler} -g -O3 -fopenmp',
+              'tsan'    : '${instrumenter} ${cxx_compiler} -g -O3 -fopenmp -fsanitize=thread',
+              'archer'  : '${instrumenter} ${cxx_compiler} -g -O3 -fopenmp -fsanitize=thread',
+            }.get('$tool_variant')
+        </parameter>
+        <parameter name="fc" mode="python">
+            {
+              'base'    : '${instrumenter} ${fortran_compiler} -g -O3 -fopenmp -cpp -funroll-loops -fpeel-loops -ffast-math',
+              'ixe'    : '${instrumenter} ${fortran_compiler} -g -O3 -fopenmp -cpp -funroll-loops -fpeel-loops -ffast-math',
+              'tsan'    : '${instrumenter} ${fortran_compiler} -g -O3 -fopenmp -cpp -funroll-loops -fpeel-loops -ffast-math -fsanitize=thread',
+              'archer'  : '${instrumenter} ${fortran_compiler} -g -O3 -fopenmp -cpp -funroll-loops -fpeel-loops -ffast-math -fsanitize=thread',
+            }.get('$tool_variant')
+        </parameter>
+        <parameter name="fld" mode="python">
+            {
+              'base'    : '${instrumenter} ${c_compiler} -g -lomp -lgfortran --gcc-toolchain=${gcc_toolchain} -lm',
+              'ixe'    : '${instrumenter} ${fortran_compiler} -fopenmp -g -lm',
+              'tsan'    : '${instrumenter} ${c_compiler} -g -lomp -lgfortran -fsanitize=thread --gcc-toolchain=${gcc_toolchain} -lm',
+              'archer'  : '${instrumenter} ${c_compiler} -g -lomp -lgfortran -fsanitize=thread --gcc-toolchain=${gcc_toolchain} -lm',
+            }.get('$tool_variant')
+        </parameter>
+        <parameter name="common_flags" mode="python">
+            {
+              'base'    : '-g -O3 -fopenmp',
+              'ixe'    : '-g -O3 -fopenmp',
+              'tsan'    : '-g -O3 -fopenmp -fsanitize=thread',
+              'archer'  : '-g -O3 -fopenmp -fsanitize=thread',
+            }.get('$tool_variant')
+        </parameter>
+        <parameter name="cflags"></parameter>
+        <parameter name="fflags"></parameter>
+        <parameter name="cxxflags"></parameter>
+        <parameter name="fportflags" mode="python">
+            {'ixe'    : '-free -fno-range-check'}.get('$tool_variant','-ffree-form -fno-range-check')</parameter>
+        <parameter name="fportmcflags" mode="python">
+            {'ixe'    : '-mcmodel=medium'}.get('$tool_variant','')</parameter>
+    </parameterset>
+    
+    <step name="config">
+      <use>builder_common_pset</use>
+      <use>builder_fixed_params</use>
+      <use>builder_changing_params</use>
+      <use>spec_platform_pset</use>
+      <use>spec_config_pset</use>
+      <use>spec_compiler_pset</use>
+      <use from="spec_builder_subs.xml">spec_config_file</use>
+      <use from="spec_builder_subs.xml">spec_config_sub</use>
+      
+      <!-- copy configuration to spec config dir -->
+      <do>if ! cmp -s ${spec_config_file} ${spec_config_path}/$$(basename ${spec_config_file}) ; then cp ${spec_config_file} ${spec_config_path}; fi</do>
+    </step>
+    
+    <parameterset name="spec_build_pset" init_with="spec_config.xml:spec_config_pset">
+      <parameter name="runspec_common_arguments">--nostrict -c ${spec_config_file} --size=${problem_size} --iterations=1</parameter>
+      <!-- <parameter name="module_load">"${module_config}"</parameter> -->
+      <parameter name="spec_rundir">${benchmark_home}/run/run_${tune}_${problem_size}_${extension}.0000</parameter>
+      <parameter name="exe" mode="python">
+          {
+              '350.md': 'md_omp_${tune}.${extension}',
+              '352.nab': 'nabmd_${tune}.${extension}',
+              '357.bt331': 'bt_${tune}.${extension}',
+              '358.botsalgn': 'bots-alignment_${tune}.${extension}',
+              '359.botsspar': 'bots-sparselu_${tune}.${extension}',
+              '367.imagick': 'convert_${tune}.${extension}',
+              '370.mgrid331': 'mg_${tune}.${extension}',
+              '371.applu331': 'lu_${tune}.${extension}',
+              '372.smithwa': 'smithwaterman_${tune}.${extension}'
+          }.get('$application', '${app_name}_${tune}.${extension}')</parameter>
+      <parameter name="executable">./${exe}</parameter>
+    </parameterset>
+    
+    <step name="build" depend="config">
+      <use>spec_build_pset</use>
+      
+        <!-- clean build and run directories -->
+        <do>${module_config};runspec -a clobber ${runspec_common_arguments} ${application}</do>
+        <!-- create a run setup including build -->
+        <do>${module_config};runspec -a setup ${runspec_common_arguments} ${application}</do>
+        
+        <do>rsync -av ${spec_rundir}/* #MASTER_WP_PATH#/exe-${extension}</do>
+        <do>ldd #MASTER_WP_PATH#/exe-${extension}/${executable} > #MASTER_WP_PATH#/exe-${extension}/${executable}.ldd</do>
+    </step>
+    
+  
+  </benchmark>
+  
+</jube>

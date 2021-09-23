@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+    <fileset name="spec_config_file">
+        <copy>${templatedir}/${spec_config_template}</copy>
+    </fileset>
+
+    <substituteset name="spec_config_sub">
+        <!-- Default jobscript substitution -->
+        <iofile in="${spec_config_template}" out="${spec_config_file}" />
+        <sub source="#CC#" dest="$cc" />
+        <sub source="#CFLAGS#" dest="$cflags" />
+        <sub source="#COMMON_FLAGS#" dest="$common_flags" />
+        <sub source="#COMPILER_VENDOR#" dest="${compiler_vendor}" />
+        <sub source="#COMPILER_VERSION#" dest="${compiler_version}" />
+        <sub source="#SPEC_OUTPUT_ROOT#" dest="${spec_outpath}" />
+        <sub source="#CXX#" dest="$cxx" />
+        <sub source="#FLD#" dest="$fld" />
+        <sub source="#CXXFLAGS#" dest="$cxxflags" />
+        <sub source="#EXTENSION#" dest="$extension" />
+        <sub source="#FC#" dest="$fc" />
+        <sub source="#FPORTFLAGS#" dest="$fportflags" />
+        <sub source="#FPORTMCFLAGS#" dest="$fportmcflags" />
+        <sub source="#FFLAGS#" dest="$fflags" />
+        <sub source="#HW_CPU#" dest="$hw_cpu" />
+        <sub source="#HW_CPU_MHZ#" dest="$hw_cpu_mhz" />
+        <sub source="#HW_DISK#" dest="$hw_disk" />
+        <sub source="#HW_MEMORY#" dest="$hw_memory" />
+        <sub source="#HW_MODEL#" dest="$hw_model" />
+        <sub source="#HW_NCHIPS#" dest="$hw_nchips" />
+        <sub source="#HW_NCORES#" dest="$hw_ncores" />
+        <sub source="#HW_NCORESPERCHIP#" dest="$hw_ncoresperchip" />
+        <sub source="#HW_NCPU#" dest="$hw_ncpu" />
+        <sub source="#HW_NTHREADSPERCORE#" dest="$hw_nthreadspercore" />
+        <sub source="#HW_VENDOR#" dest="$hw_vendor" />
+        <sub source="#PLATFORM#" dest="$platform" />
+        <sub source="#SW_FILE#" dest="$sw_file" />
+        <sub source="#SW_OS#" dest="$sw_os" />
+        <sub source="#TUNE#" dest="$tune" />
+    </substituteset>  
+</jube>

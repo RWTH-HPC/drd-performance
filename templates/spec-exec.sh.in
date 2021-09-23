@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+# See LICENSE for license information.
+# SPDX-License-Identifier: Apache-2.0
+
+#MODULE_CONFIG#
+
+#ENVIRONMENT_VARS#
+
+#PREPROCESS#
+export OMP_TOOL_VERBOSE_INIT=stdout
+
+cd #EXEC_PATH#
+
+#EXEC_PREFIX# #EXECUTABLE# #ARGS_EXECUTABLE#
+
+#POSTPROCESS#

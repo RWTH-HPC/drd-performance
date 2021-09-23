@@ -1,0 +1,16 @@
+"application","config","numthreads","output_type","wtime"
+"363.swim","base-none","24","profiler",7.975899e+00
+"363.swim","tsan-noread-none","24","profiler",4.419459e+01
+"363.swim","archer-noread-none","24","profiler",5.774753e+01
+"363.swim","tsan-sampling-none","24","profiler",5.207895e+01
+"363.swim","archer-sampling-none","24","profiler",6.110440e+01
+"363.swim","tsan-none","24","profiler",4.625707e+01
+"363.swim","archer-none","24","profiler",5.809438e+01
+"363.swim","base-profiler","24","profiler",8.048142e+00
+"363.swim","tsan-noread-profiler","24","profiler",4.461733e+01
+"363.swim","archer-noread-profiler","24","profiler",5.815495e+01
+"363.swim","tsan-sampling-profiler","24","profiler",5.275726e+01
+"363.swim","archer-sampling-profiler","24","profiler",6.149797e+01
+"363.swim","tsan-profiler","24","profiler",4.668448e+01
+"363.swim","archer-profiler","24","profiler",5.872384e+01
+

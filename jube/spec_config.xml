@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+    <!-- Parameter set to give information about the used system. Not used for the computation, just for display purposes. -->
+    <parameterset name="spec_platform_pset">
+        <parameter name="platform">Claix</parameter>
+        <parameter name="hw_model">Claix</parameter>
+        <parameter name="hw_memory">192GiB</parameter>
+        <parameter name="hw_vendor">Intel</parameter>
+        <parameter name="hw_disk"></parameter>
+        <parameter name="hw_cpu">Intel Xeon Platinum 8160</parameter>
+        <parameter name="hw_cpu_mhz">2100</parameter>
+        <parameter name="hw_nchips">2</parameter>
+        <parameter name="hw_ncoresperchip">24</parameter>
+        <parameter name="hw_nthreadspercore">1</parameter>
+        <parameter name="sw_os">Linux</parameter>
+        <parameter name="sw_file"></parameter>
+        <parameter name="avx_flag"></parameter>
+    </parameterset>
+    
+    <!-- Parameter set to specify the compilers that should be used. To execute Archer runs the specified c and c++ compiler
+         need to have Archer included. All specified compilers should be able to use the option "-fsanitize=thread" -->
+    <parameterset name="spec_compiler_pset">
+        <parameter name="compiler_vendor">Clang</parameter>
+        <parameter name="c_compiler" mode="python">{'ixe'    : 'icc'}.get('$tool_variant','clang')</parameter>
+        <parameter name="cxx_compiler" mode="python">{'ixe'    : 'icpc'}.get('$tool_variant','clang++')</parameter>
+        <parameter name="fortran_compiler" mode="python">{'ixe'    : 'ifort'}.get('$tool_variant','gfortran')</parameter>
+        <parameter name="gcc_toolchain">/usr/local_rwth/sw/gcc/7.3.0</parameter>
+    </parameterset>
+    
+    <!-- Parameter set to specify the PAPI counter groups. Only one tag for the papi ctrs can be used. -->
+    <parameterset name="spec_counter_pset">
+        <!-- Predefined PAPI counter groups. If wanted the groups can be changed to 
+             specific counters with "papi=CTR1|CTR2|...|CTRN" -->
+        <parameter name="papi_ctr"></parameter>
+        <parameter name="papi_ctr" tag="papi_caches">papi_group=CACHES</parameter>
+        <parameter name="papi_ctr" tag="papi_cycles">papi_group=CYCLES</parameter>
+        <parameter name="papi_ctr" tag="papi_branches">papi_group=BRANCHES</parameter>
+        
+        <!-- User defined PAPI counter group. To specify the counters write "papi=CTR1|CTR2|...|CTRN"
+             There exists a system-specific limit for the number of simultaneously measurable counters.-->
+        <parameter name="papi_ctr" tag="papi_userdef">papi=MEM_INST_RETIRED:ALL_STORES|MEM_INST_RETIRED:ALL_LOADS|L1D:REPLACEMENT|L2_RQSTS:ALL_CODE_RD|L2_RQSTS:ALL_DEMAND_REFERENCES|L2_RQSTS:CODE_RD_MISS|LLC_REFERENCES|LLC_MISSES</parameter>
+        
+        <!-- Separator between the different counters. Change, if the used counters include the currently specified separator. -->
+        <parameter name="papi_sep">|</parameter>
+    </parameterset>
+    
+    <parameterset name="spec_config_pset">
+        <!-- In order to run correctly, the DRD performance application needs to have access to different applications described in the following: -->
+        <!-- ~ clang compiler with Archer -->
+        <!-- gcc -->
+        <!-- intelmpi-->
+        <!-- python, at least version 3.6.8-->
+        <!-- jube, version 2.2.2-->
+        <!-- papi (if it is desired to measure hardware performance counters)-->
+        <!-- scorep (if measurements with Score-P are desired)-->
+        <!-- Please specify below how these applications should be loaded (e.g. via module). -->
+        <!-- Specify the commands as one string, with each command separated with a ";"-->
+        <parameter name="jube_module_config">module purge;module load DEV-TOOLS  jube/2.2.2 ;module li</parameter>
+        <parameter name="clang_module_config">module purge; module use $BASE_DIR/modules; module load DEVELOP clang/13-base  intel gcc/7 DEV-TOOLS  jube/2.2.2  papi;module li</parameter>
+        <parameter name="sample_module_config">module purge; module use $BASE_DIR/modules; module load DEVELOP clang/13-sampling intel gcc/7 DEV-TOOLS  jube/2.2.2  papi;module li</parameter>
+        <parameter name="noread_module_config">module purge; module use $BASE_DIR/modules; module load DEVELOP clang/13-noreads intel gcc/7 DEV-TOOLS  jube/2.2.2  papi;module li</parameter>
+        <parameter name="ixe_module_config">module purge;module load DEVELOP clang/12 intel intelixe DEV-TOOLS  jube/2.2.2 papi;module li;export LIBRARY_PATH=/opt/intel/inspector_xe/Build605451/inspector_xe/lib64/:$LIBRARY_PATH</parameter>
+        <parameter name="module_config" mode="python">{'tsan-sampling':'$sample_module_config',
+                                                       'archer-sampling':'$sample_module_config',
+                                                       'tsan-noread':'$noread_module_config',
+                                                       'archer-noread':'$noread_module_config',
+                                                       'ixe-base':'$ixe_module_config',
+                                                       'ixe-detail':'$ixe_module_config'
+                                                       }.get('$compiler_variant', '$clang_module_config') </parameter>
+        
+        <!-- Additionally, SPEC OMP2012 needs to be correctly initialized, so please specify where your SPEC root directory is located -->
+        <parameter name="spec_rundir">"${BASE_DIR}/spec"</parameter>
+        
+    </parameterset>
+    
+    <parameterset name="system_pset">
+      <!-- Timelimit for the SLURM job. If "", then default "01:00:00" -->
+      <parameter name="timelimit_user">"4:30:00"</parameter>
+    </parameterset>
+    
+</jube>

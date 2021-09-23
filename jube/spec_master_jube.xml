@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+
+  <include-path>
+      <path>.</path>
+      <path>${JUBE_INCLUDE_PATH}</path>
+      <path>${templatedir}</path>
+  </include-path>
+  
+  <benchmark name="SPEC-master" outpath="$JUBE_RES_DIR">
+  
+    <!-- ***************************************** -->
+    <!-- ********* GENERAL PARAM SETS ************ -->
+    <!-- ***************************************** -->
+    
+    <parameterset name="master_common_pset" init_with="common_jube.xml:common_pset">
+      <parameter name="jube_master_benchmark_home">${jube_benchmark_home}</parameter>
+      <parameter name="spec_outdir">${jube_benchmark_rundir}/spec-out</parameter>
+            
+      <parameter name="flat_profile">0</parameter>
+      <parameter name="flat_profile" tag="flat_profile">1</parameter>
+    </parameterset>
+    
+    <parameterset name="master_changeable_params" init_with="spec_config.xml:spec_counter_pset">
+      
+      <!-- Problem size - default drd -->
+      <parameter name="problem_size">drd</parameter>
+      <parameter name="problem_size" tag="test">test</parameter>
+      <parameter name="problem_size" tag="train">train</parameter>
+      <parameter name="problem_size" tag="drd">drd</parameter>
+      <parameter name="problem_size" tag="ref">ref</parameter>
+      
+      <!-- Measurement tools - default without Score-P -->
+      <parameter name="meas_states" separator=";">none,profiler</parameter>
+      <parameter name="meas_states" separator=";" tag="scorep">none,profiler,scorep</parameter>
+      
+    </parameterset>
+    
+    <parameterset name="master_fixed_params">
+      
+      <parameter name="applications" separator=";">350.md</parameter>
+      <!-- <parameter name="applications" separator=";">350.md,351.bwaves,352.nab,357.bt331,358.botsalgn,359.botsspar,360.ilbdc,362.fma3d,363.swim,367.imagick,370.mgrid331,371.applu331,372.smithwa,376.kdtree</parameter> -->
+      <!-- <parameter name="applications" separator=";">363.swim</parameter>-->
+      <!-- <parameter name="compiler_variants" separator=";">base,tsan-noread,archer-noread,tsan-sampling,archer-sampling,tsan,archer</parameter> -->
+      <!-- <parameter name="compiler_variants" separator=";">base,ixe-base,ixe-detail,archer-noread</parameter>-->
+      <parameter name="compiler_variants" separator=";">base,tsan-noread,archer-noread,tsan-sampling,archer-sampling,tsan,archer</parameter>
+      <!--<parameter name="compiler_variants" separator=";">base,tsan,archer</parameter>-->
+      
+      <!--<parameter name="applications" separator=";">352.nab</parameter>-->
+      <!-- <parameter name="thread_nums" separator=";">12,24,48</parameter> -->
+      <parameter name="thread_nums" separator=";">12</parameter>
+      <parameter name="proc_nums" separator=";"></parameter>
+      
+    </parameterset>
+    
+    <!-- ***************************************** -->
+    <!-- ********* META PARAM SETS *************** -->
+    <!-- ***************************************** -->
+    
+    <parameterset name="master_meta_params">
+    <!-- Transform all used parameters in quoted strings for csv -->
+    
+      <!-- Problem size -->
+      <parameter name="problem_size_meta">"${problem_size}"</parameter>
+      
+      <!-- Measurement tools -->
+      <parameter name="meas_states_meta" mode="python" separator=";">
+        ",".join(['"'+i+'"' for i in "${meas_states}".split(",") if len(i) > 0])
+      </parameter>
+    
+      <!-- Applications -->
+      <parameter name="applications_meta" mode="python" separator=";">
+        ",".join(['"'+i+'"' for i in "${applications}".split(",") if len(i) > 0])
+      </parameter>
+      
+      <!-- Compiler variants -->
+      <parameter name="compiler_variants_meta" mode="python" separator=";">
+        ",".join(['"'+i+'"' for i in "${compiler_variants}".split(",") if len(i) > 0])
+      </parameter>
+      
+      <!-- Thread numbers -->
+      <parameter name="thread_nums_meta" mode="python" separator=";">
+        ",".join(['"'+i+'"' for i in "${thread_nums}".split(",") if len(i) > 0])
+      </parameter>
+      
+      <!-- Process numbers -->
+      <parameter name="proc_nums_meta" mode="python" separator=";">
+        ",".join(['"'+i+'"' for i in "${proc_nums}".split(",") if len(i) > 0])
+      </parameter>
+    
+      <!-- Hardware counters -->
+      <parameter name="papi_userdef_ctrs" tag="papi_userdef" mode="python" separator=";">
+        ",".join(['"'+i+'"' for i in "$papi_ctr"[5:].split("$papi_sep")])
+      </parameter>
+      
+      <parameter name="papi_ctrs_meta" mode="python" separator=";">
+        {
+        'papi_group=CACHES' : ',"MEM_INST_RETIRED:ALL_STORES","MEM_INST_RETIRED:ALL_LOADS","L1D:REPLACEMENT","L2_RQSTS:ALL_CODE_RD","L2_RQSTS:ALL_DEMAND_REFERENCES","L2_RQSTS:CODE_RD_MISS","LLC_REFERENCES","LLC_MISSES","L1D_W_A = L1D_W_H","L1D_R_H","L2D_H","L3D_A","L3_H","MEM"',
+        'papi_group=CYCLES' : ',"CYCLE_ACTIVITY:STALLS_TOTAL","CYCLE_ACTIVITY:STALLS_MEM_ANY","CYCLE_ACTIVITY:CYCLES_MEM_ANY","CYCLE_ACTIVITY:STALLS_L1D_MISS","CYCLE_ACTIVITY:CYCLES_L1D_MISS","CYCLE_ACTIVITY:STALLS_L2_MISS","CYCLE_ACTIVITY:STALLS_L3_MISS","BR_INST_RETIRED:COND"',
+        'papi_group=BRANCHES' : ',"BR_INST_RETIRED:COND","BR_INST_RETIRED:ALL_BRANCHES","BR_INST_RETIRED:NOT_TAKEN","BR_MISP_RETIRED:COND","BR_MISP_RETIRED:ALL_BRANCHES","INST_RETIRED:ALL"',
+        '' : ''
+        }.get('$papi_ctr',',$papi_userdef_ctrs')
+      </parameter>
+      
+      <parameter name="flat_profile_meta" mode="python">
+        {
+        '0' : '"call_path"',
+        '1' : '"flat"'
+        }.get('$flat_profile', '"call_path"')
+      </parameter>
+      
+      <parameter name="meta_file">output_config.csv</parameter>
+      
+    </parameterset>
+    
+    <step name="meta">
+      <use>master_common_pset</use>
+      <use>master_changeable_params</use>
+      <use>master_fixed_params</use>
+      <use>master_meta_params</use>
+      
+      <!-- Write meta output file -->
+      <use from="spec_master_subs.xml">meta_file</use>
+      <use from="spec_master_subs.xml">meta_sub</use>
+    
+    </step>
+    
+    <!-- ***************************************** -->
+    <!-- ********* BUILD PARAM SETS ************** -->
+    <!-- ***************************************** -->
+    
+    <parameterset name="master_config_pset" init_with="spec_config.xml:spec_config_pset">
+      <parameter name="master_build_wp_path">${jube_wp_abspath}</parameter>
+    </parameterset>
+    
+    <parameterset name="builder_params">
+      
+      <!-- fixed params for one build step -->
+      <parameter name="application">$applications</parameter>
+      <parameter name="build_xml">spec_builder_jube.xml</parameter>
+      <parameter name="build_bash">spec-build.sh</parameter>
+      
+    </parameterset>
+    
+    <step name="build">
+      <use>master_common_pset</use>
+      <use>master_changeable_params</use>
+      <use>master_fixed_params</use>
+      <use>master_config_pset</use>
+      <use>builder_params</use>
+      
+      <!-- create builder xml file -->
+      <use from="spec_master_subs.xml">build_xml_file</use>
+      <use from="spec_master_subs.xml">build_xml_sub</use>
+      
+      <!-- create builder bash file -->
+      <use from="spec_master_subs.xml">build_bash_file</use>
+      <use from="spec_master_subs.xml">build_bash_sub</use>
+      
+      <!-- execute bash file, which runs the builder xml -->
+      <do>bash ${build_bash}</do>
+    </step>
+    
+    <!-- ***************************************** -->
+    <!-- ********* EXEC PARAM SETS *************** -->
+    <!-- ***************************************** -->
+    
+    <parameterset name="exec_params">
+      <parameter name="thread_num" separator=",">${thread_nums}</parameter>
+      <parameter name="proc_num">${proc_nums}</parameter>
+      
+      <parameter name="exec_xml">spec_exec_jube.xml</parameter>
+      <parameter name="exec_bash">spec-exec.sh</parameter>
+      
+      <!--<parameter name="OMP_PLACES" export="true">cores</parameter>
+      <parameter name="OMP_PROC_BIND" export="true">close</parameter>
+      <parameter name="OMP_NUM_THREADS" export="true">${thread_num}</parameter>-->
+      
+      <parameter name="submit">bash</parameter>
+      <!-- <parameter name="submit">bash|sbatch</parameter> -->
+      <!--  convince xml to accept a input-pipe : "bjob     < " -->
+      <!-- <parameter name="submit" mode="python">'bjob ' + chr(60)</parameter> -->
+      <parameter name="exec_submit_file">spec-submit.job</parameter>
+      <parameter name="done_file">ready</parameter>
+    </parameterset>
+    
+    <parameterset name="exec_system_params" init_with="spec_master_subs.xml:master_system_pset_default">
+      <parameter name="preprocess">echo HOSTNAME=$HOSTNAME</parameter>
+      <!-- set environment variable USER_EMAIL to receive job queue info -->
+      <parameter name="mail" mode="shell">echo -n $${USER_EMAIL}</parameter>
+      <parameter name="nodes">1</parameter>
+      <parameter name="ntasks">1</parameter>
+      <parameter name="queue">c18m</parameter>
+      <parameter name="exec_jube_result_output_file">walltimes.csv</parameter>
+      <parameter name="master_exec_wp_path">${jube_wp_abspath}</parameter>
+    </parameterset>
+    
+    <parameterset name="exec_scorep_params" tag="scorep">
+      <!-- Score-P options for PAPI ctrs and trace/profile mode -->
+      <parameter name="scorep_papi_ctrs" mode="python">
+      {
+        'papi_group=CACHES' : 'MEM_INST_RETIRED:ALL_STORES|MEM_INST_RETIRED:ALL_LOADS|L1D:REPLACEMENT|L2_RQSTS:ALL_CODE_RD|L2_RQSTS:ALL_DEMAND_REFERENCES|L2_RQSTS:CODE_RD_MISS|LLC_REFERENCES|LLC_MISSES',
+        'papi_group=CYCLES' : 'CYCLE_ACTIVITY:STALLS_TOTAL|CYCLE_ACTIVITY:STALLS_MEM_ANY|CYCLE_ACTIVITY:CYCLES_MEM_ANY|CYCLE_ACTIVITY:STALLS_L1D_MISS|CYCLE_ACTIVITY:CYCLES_L1D_MISS|CYCLE_ACTIVITY:STALLS_L2_MISS|CYCLE_ACTIVITY:STALLS_L3_MISS|BR_INST_RETIRED:COND',
+        'papi_group=BRANCHES' : 'BR_INST_RETIRED:COND|BR_INST_RETIRED:ALL_BRANCHES|BR_INST_RETIRED:NOT_TAKEN|BR_MISP_RETIRED:COND|BR_MISP_RETIRED:ALL_BRANCHES|INST_RETIRED:ALL'
+      }.get('$papi_ctr','$papi_ctr'[5:])
+      </parameter>
+      <parameter name="scorep_papi_sep" mode="python">
+      {
+        'papi_group=CACHES' : '|',
+        'papi_group=CYCLES' : '|',
+        'papi_group=BRANCHES' : '|'
+      }.get('$papi_ctr', '$papi_sep')
+      </parameter>
+      <parameter name="SCOREP_METRIC_PAPI_SEP" export="true" tag="papi_caches|papi_cycles|papi_branches|papi_userdef">$scorep_papi_sep</parameter>
+      <parameter name="SCOREP_METRIC_PAPI" export="true" tag="papi_caches|papi_cycles|papi_branches|papi_userdef">$scorep_papi_ctrs</parameter>
+      
+      <parameter name="SCOREP_ENABLE_TRACING" export="true" tag="trace">true</parameter>
+      <parameter name="SCOREP_ENABLE_PROFILING" export="true" tag="profile">true</parameter> 
+      <parameter name="SCOREP_ENABLE_TRACING" export="true" tag="no_trace">false</parameter>
+      <parameter name="SCOREP_ENABLE_PROFILING" export="true" tag="no_profile">false</parameter>
+    </parameterset>
+    
+    <step name="measurement" depend="build">
+      <use>exec_params</use>
+      <use>exec_system_params</use>
+      <use tag="scorep">exec_scorep_params</use>
+      <use from="spec_master_subs.xml">exec_xml_file</use>
+      <use from="spec_master_subs.xml">exec_xml_sub</use>
+      <use from="spec_master_subs.xml">exec_submit_file</use>
+      <use from="spec_master_subs.xml">exec_submit_sub</use>
+      
+      <do done_file="${done_file}">${submit} ${exec_submit_file}</do> 
+    </step>
+    
+    <step name="merge_results" depend="measurement">
+      <do>find -L . -name "output.csv" -exec cat {} \; > output_all.csv</do>
+      <do>ln -s measurement/$exec_jube_result_output_file $exec_jube_result_output_file</do>
+    </step>
+    
+  </benchmark>
+  
+  
+</jube>

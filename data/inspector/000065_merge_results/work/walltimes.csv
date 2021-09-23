@@ -1,0 +1,10 @@
+"application","config","numthreads","output_type","wtime"
+"352.nab","base-none","48","profiler",4.645717e+00
+"352.nab","ixe-base-none","48","profiler",1.550452e+02
+"352.nab","ixe-detail-none","48","profiler",2.230996e+03
+"352.nab","archer-noread-none","48","profiler",4.526095e+01
+"352.nab","base-profiler","48","profiler",4.578437e+00
+"352.nab","ixe-base-profiler","48","profiler",1.825032e+02
+"352.nab","ixe-detail-profiler","48","profiler",2.383116e+03
+"352.nab","archer-noread-profiler","48","profiler",4.587195e+01
+

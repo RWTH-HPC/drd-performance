@@ -1,0 +1,134 @@
+# This is a sample config file. It was tested with:
+#
+# If your platform uses different versions, different
+# hardware or operates in a different mode (for 
+# example, 32- vs. 64-bit mode), there is the possibiliy
+# that this configuration file may not work as-is. 
+#
+# Note that issues with compilation should be directed
+# to the compiler vendor. Information about SPEC technical
+# support can be found in the techsupport document in the
+# Docs directory of your benchmark installation.
+#
+# Also note that this is a sample configuration. It
+# is expected to work for the environment in which
+# it was tested; it is not guaranteed that this is 
+# the config file that will provide the best performance.
+# 
+# Note that you might find a more recent config file for
+# your platform with the posted results at
+# www.spec.org/omp2012
+####################################################################
+# Replace the setting below with the ones that match your
+# machine.
+#
+# hw_model = name of the machine model
+# hw_memory = how much memory in the machine you are testing
+# hw_disk = what types and size of disk were used when tested
+# hw_vendor = what vendor makes the machine being tested
+# hw_cpu = what type of processor is in the system
+# hw_cpu_mhz = the clock frequency of the processor
+# hw_ncpu = the number of CPUs in the system
+#######################################################################
+
+
+# System Description
+hw_model        = #HW_MODEL#
+hw_memory       = #HW_MEMORY#
+hw_disk         = #HW_DISK#
+hw_vendor       = #HW_VENDOR#
+
+# CPU description
+
+hw_cpu             = #HW_CPU#
+hw_cpu_mhz         = #HW_CPU_MHZ#
+hw_nchips          = #HW_NCHIPS#
+hw_ncores          = #HW_NCORES#
+hw_ncoresperchip   = #HW_NCORESPERCHIP#
+hw_nthreadspercore = #HW_NTHREADSPERCORE#
+
+# Tester description - edit the date, put your license number here!
+
+license_num     =
+prepared_by     = JUBE - Juelich Benchmarking Environment
+display_order   = 1a
+
+# Operating system, file system
+
+sw_os           = #SW_OS#
+sw_file         = #SW_FILE#
+
+
+#######################################################################
+# End of SUT section
+# If this config file were to be applied to several SUTs, edits would
+# be needed only ABOVE this point.
+######################################################################
+
+
+######################################################################
+# The header section of the config file.  Must appear
+# before any instances of "default="
+#
+# ext = how the binaries you generated will be identified
+# tune = specify "base" or "peak" or "all"
+# the rest are default values
+
+ext           = #EXTENSION#
+tune          = #TUNE#
+
+check_md5     = yes
+env_vars      = yes
+mean_anyway   = 1
+output_format = asc
+table         = 0
+teeout        = no
+teerunout     = yes
+
+output_root = #SPEC_OUTPUT_ROOT#
+
+# turn strict verification off to allow for patching sources
+strict_rundir_verify = 0
+
+######################################################################
+# Compiler selection, versions, and dates.
+# C and Fortran are used in both OMPM2001 and OMPL2001, so its 
+# information appears under
+#         default=default=default=default:
+#
+# sw_compiler<xx> = additional information describing the compiler
+# CC  = how the C Compiler is invoked
+# FC  = how the FORTRAN compiler is invoked
+
+
+default=default=default=default:
+sw_compiler  = #COMPILER_VENDOR# #COMPILER_VERSION#
+CC           = #CC#
+FC           = #FC#
+F77          = #FC#
+CXX          = #CXX#
+
+FLD          = #FLD#
+
+#######################################################################
+# Baseline Optimization
+#
+#COPTIMIZE = #COMMON_FLAGS# #CFLAGS#
+#CXXOPTIMIZE = #COMMON_FLAGS# #CXXFLAGS#
+#FOPTIMIZE = #COMMON_FLAGS# #FFLAGS#
+
+#######################################################################
+#
+# Portability
+
+350.md=default=default=default:
+FPORTABILITY = #FPORTFLAGS#
+
+367.imagick=default=default=default:
+CPORTABILITY = -std=c99
+
+ 363.swim=default=default=default:
+ FPORTABILITY = #FPORTMCFLAGS#
+
+ 357.bt331=default=default=default:
+ FPORTABILITY = #FPORTMCFLAGS#

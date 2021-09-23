@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+
+    <!-- Meta output file -->
+    <fileset name="meta_file">
+      <copy>${templatedir}/${meta_file}.in</copy>
+    </fileset>
+    
+    <substituteset name="meta_sub">
+      <iofile in="${meta_file}.in" out="${meta_file}"/>
+      <sub source="#APPLICATIONS#" dest="${applications_meta}"/>
+      <sub source="#TNUMS#" dest="${thread_nums_meta}"/>
+      <sub source="#COUNTERS#" dest='"Time"${papi_ctrs_meta}'/>
+      <sub source="#VARIANTS#" dest="${compiler_variants_meta}"/>
+      <sub source="#MEAS_STATES#" dest="${meas_states_meta}"/>
+      <sub source="#OUTPUT_TYPE#" dest="${flat_profile_meta}"/>
+    </substituteset>
+
+    <!-- All xmls for the builder -->
+    <fileset name="build_xml_file">
+      <copy>${jube_benchmark_home}/${build_xml}.in</copy>
+      <copy>${jube_benchmark_home}/spec_builder_subs.xml</copy>
+      <copy>${jube_benchmark_home}/common_jube.xml</copy>
+      <copy>${jube_benchmark_home}/spec_config.xml</copy>
+    </fileset>
+    
+    <substituteset name="build_xml_sub">
+      <iofile in="${build_xml}.in" out="${build_xml}"/>
+      <sub source="#MASTER_WP_PATH#" dest="${master_build_wp_path}"/>
+      <sub source="#MASTER_HOME#" dest="${jube_master_benchmark_home}"/>
+      <sub source="#SPEC_OUTPUT_ROOT#" dest="${spec_outdir}"/>
+      <sub source="#APPLICATION#" dest="${application}"/>
+      <sub source="#PROBLEM_SIZE#" dest="${problem_size}"/>
+      <sub source="#MEAS_STATES#" dest="${meas_states}"/>
+      <sub source="#THREAD_NUM#" dest="${thread_num}"/>
+      <sub source="#COMPILER_VARIANTS#" dest="${compiler_variants}"/>
+    </substituteset>
+    
+    <!-- Builder bash script -->
+    <substituteset name="build_bash_sub">
+      <iofile in="${build_bash}.in" out="${build_bash}"/>
+      <sub source="#MODULE_CONFIG#" dest="${module_config}"/>
+      <sub source="#JUBE_MODULE_CONFIG#" dest="${jube_module_config}"/>
+      <sub source="#SPEC_RUNDIR#" dest="${spec_rundir}"/>
+      <sub source="#ENV#" dest="${jube_wp_envstr}"/>
+      <sub source="#BUILD_XML#" dest="${build_xml}"/>
+    </substituteset>
+    
+    <fileset name="build_bash_file">
+      <copy>${templatedir}/${build_bash}.in</copy>
+    </fileset>
+    
+    <!-- Default system params for the exec step -->
+    <parameterset name="master_system_pset_default" init_with="spec_config.xml:system_pset">
+      <parameter name="nodes" type="int">1</parameter>
+      <parameter name="taskspernode" type="int">1</parameter>
+      <parameter name="tasks" mode="python" type="int">
+          $nodes * $taskspernode
+      </parameter>
+      <parameter name="queue">batch</parameter>
+      <parameter name="mail"></parameter>
+      <parameter name="env" separator=";">$jube_wp_envstr</parameter>
+      <parameter name="notification">ALL</parameter>
+      <parameter name="outlogfile">job.out</parameter>
+      <parameter name="errlogfile">job.err</parameter>
+      <parameter name="timelimit" mode="python">
+      {
+        "" : "01:00:00"
+      }.get($timelimit_user, $timelimit_user)
+      </parameter>
+    </parameterset>
+    
+    <!-- All xmls for the exec -->
+    <fileset name="exec_xml_file">
+      <copy>${jube_benchmark_home}/${exec_xml}.in</copy>
+      <copy>${jube_benchmark_home}/spec_exec_subs.xml</copy>
+      <copy>${jube_benchmark_home}/common_jube.xml</copy>
+      <copy>${jube_benchmark_home}/spec_config.xml</copy>
+    </fileset>
+    
+    <substituteset name="exec_xml_sub">
+      <iofile in="${exec_xml}.in" out="${exec_xml}"/>
+      <sub source="#MASTER_WP_PATH#" dest="${master_exec_wp_path}"/>
+      <sub source="#MASTER_HOME#" dest="${jube_master_benchmark_home}"/>
+      <sub source="#APPLICATION#" dest="${application}"/>
+      <sub source="#PROBLEM_SIZE#" dest="${problem_size}"/>
+      <sub source="#MEAS_STATES#" dest="${meas_states}"/>
+      <sub source="#COMPILER_VARIANTS#" dest="${compiler_variants}"/>
+      <sub source="#PAPI_CTR#" dest="${papi_ctr}"/>
+      <sub source="#PAPI_SEP#" dest="${papi_sep}"/>
+      <sub source="#THREAD_NUM#" dest="${thread_num}"/>
+      <sub source="#FLAT_PROFILE#" dest="${flat_profile}"/>
+    </substituteset>
+    
+    <!-- Exec submit script -->
+    <fileset name="exec_submit_file">
+      <copy>${templatedir}/${exec_submit_file}.in</copy>
+    </fileset>
+    
+    <substituteset name="exec_submit_sub">
+        <iofile in="${exec_submit_file}.in" out="${exec_submit_file}"/>
+        <sub source="#APP_NAME#" dest="${jube_benchmark_name}_${thread_num}"/>
+        <sub source="#NOTIFY_EMAIL#" dest="${mail}"/>
+        <sub source="#NOTIFICATION_TYPE#" dest="${notification}"/>
+        <sub source="#NODES#" dest="$nodes" />
+        <sub source="#TASKS#" dest="$tasks" />
+        <sub source="#NCPUS#" dest="$taskspernode" />
+        <sub source="#NTHREADS#" dest="$thread_num" />
+        <sub source="#TIME_LIMIT#" dest="$timelimit" />
+        <sub source="#STDOUTLOGFILE#" dest="$outlogfile" />
+        <sub source="#STDERRLOGFILE#" dest="$errlogfile" />
+        <sub source="#QUEUE#" dest="$queue" />
+        <sub source="#EXTRASBATCH#" dest="${extra_sbatch}" />
+        <sub source="#PREPROCESS#" dest="$preprocess" />
+        <sub source="#MODULE_CONFIG#" dest="${module_config}"/>
+        <sub source="#JUBE_MODULE_CONFIG#" dest="${jube_module_config}"/>
+        <sub source="#SPECDIR#" dest="${spec_rundir}"/>
+        <sub source="#ENVIRONMENT_VARS#" dest="${env}"/>
+        <sub source="#MASTER_EXEC_WP_PATH#" dest="${master_exec_wp_path}"/>
+        <sub source="#EXEC_XML#" dest="${exec_xml}"/>
+        <sub source="#RESULT_OUTPUT#" dest="${exec_jube_result_output_file}"/>
+        <sub source="#DONE_FILE#" dest="${done_file}"/>
+        
+    </substituteset>
+    
+</jube>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+    <fileset name="spec_warmup_file">
+      <copy>${templatedir}/${spec_warmup_file}.in</copy>
+    </fileset>
+    
+    <substituteset name="spec_warmup_sub">
+      <iofile in="${spec_warmup_file}.in" out="${spec_warmup_file}"/>
+      <sub source="#JUBE_MODULE_CONFIG#" dest="${jube_module_config}"/>
+      <sub source="#MODULE_CONFIG#" dest="${module_config}"/>
+      <sub source="#PREPROCESS#" dest="${preprocess}"/>
+      <sub source="#EXEC_PATH#" dest="exe-warmup"/>
+      <sub source="#EXEC_PREFIX#" dest=""/>
+      <sub source="#EXECUTABLE#" dest="${executable}"/>
+      <sub source="#ARGS_EXECUTABLE#" dest="${args_exec}"/>
+      <sub source="#POSTPROCESS#" dest="${postprocess}"/>
+    </substituteset>
+
+    <fileset name="spec_exec_file">
+        <copy>${templatedir}/${spec_exec_template}</copy>
+    </fileset>
+
+    <substituteset name="spec_exec_sub">
+        <!-- Default jobscript substitution -->
+        <iofile in="${spec_exec_template}" out="${spec_exec_file}" />
+        <sub source="#JUBE_MODULE_CONFIG#" dest="${jube_module_config}"/>
+        <sub source="#MODULE_CONFIG#" dest="${module_config}"/>
+        <sub source="#ENVIRONMENT_VARS#" dest="${jube_wp_envstr}"/>
+        <sub source="#PREPROCESS#" dest="${preprocess}"/>
+        <sub source="#EXEC_PATH#" dest="${exec_path}"/>
+        <sub source="#EXEC_PREFIX#" dest="${exec_prefix}"/>
+        <sub source="#EXECUTABLE#" dest="${executable}"/>
+        <sub source="#ARGS_EXECUTABLE#" dest="${args_exec}"/>
+        <sub source="#POSTPROCESS#" dest="${postprocess}"/>
+    </substituteset>  
+</jube>

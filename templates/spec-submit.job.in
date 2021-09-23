@@ -1,0 +1,56 @@
+#!/bin/bash -x
+
+# Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+# See LICENSE for license information.
+# SPDX-License-Identifier: Apache-2.0
+
+#SBATCH --job-name=#APP_NAME#
+#SBATCH --mail-user=#NOTIFY_EMAIL#
+#SBATCH --mail-type=#NOTIFICATION_TYPE#
+#SBATCH --nodes=#NODES#
+#SBATCH --ntasks=#TASKS#
+#SBATCH --ntasks-per-node=#NCPUS#
+#SBATCH --cpus-per-task=#NTHREADS#
+#SBATCH --time=#TIME_LIMIT#
+#SBATCH --output=#STDOUTLOGFILE#
+#SBATCH --error=#STDERRLOGFILE#
+#SBATCH --partition=#QUEUE#
+###SBATCH --account=rwth0440
+###SBATCH --hwctr=vtuneperf
+
+#PREPROCESS#
+
+#JUBE_MODULE_CONFIG#
+
+ORIGINAL_PATH="$PWD"
+cd #SPECDIR#
+. ./shrc
+cd $ORIGINAL_PATH
+
+#ENVIRONMENT_VARS#
+
+jube run -e #EXEC_XML#
+
+#catch if jube run threw an error
+JUBE_ERR_CODE=$? 
+if [ $JUBE_ERR_CODE -ne 0 ]; then
+    exit $JUBE_ERR_CODE
+fi
+
+jube analyse #MASTER_EXEC_WP_PATH# --id 0
+
+#catch if jube run threw an error
+JUBE_ERR_CODE=$? 
+if [ $JUBE_ERR_CODE -ne 0 ]; then
+    exit $JUBE_ERR_CODE
+fi
+
+jube result #MASTER_EXEC_WP_PATH# --id 0 >> #RESULT_OUTPUT#
+
+#catch if jube run threw an error
+JUBE_ERR_CODE=$? 
+if [ $JUBE_ERR_CODE -ne 0 ]; then
+    exit $JUBE_ERR_CODE
+fi
+
+touch #DONE_FILE#

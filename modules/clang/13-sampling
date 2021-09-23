@@ -1,0 +1,30 @@
+#%Module1.0#####################################################################
+##
+## dot modulefile
+##
+## 
+##
+
+proc ModulesHelp { } {
+        global clangversion
+
+        puts stderr "\tAdds clang-omp to your PATH environment variables"
+}
+
+module-whatis   "adds clang-omp to your PATH environment variables"
+
+set     clangversion     13.0-sampling
+set     llvm            $env(BASE_DIR)/llvm/install-sampling
+setenv  LLVM_ROOT       $llvm
+setenv  CLANG_ROOT      $llvm
+
+setenv CC clang
+setenv CXX clang++
+
+prepend-path    PATH    $llvm/bin
+prepend-path    LD_LIBRARY_PATH 	$llvm/lib
+prepend-path    LIBRARY_PATH    $llvm/lib
+prepend-path    C_INCLUDE_PATH  $llvm/include
+prepend-path    C_INCLUDE_PATH  $llvm/lib/clang/13.0/include
+prepend-path    CPLUS_INCLUDE_PATH      $llvm/include
+prepend-path    CPLUS_INCLUDE_PATH  $llvm/lib/clang/13.0/include

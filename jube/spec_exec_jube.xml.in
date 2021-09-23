@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+
+  <include-path>
+      <path>.</path>
+      <path>${templatedir}</path>
+  </include-path>
+  
+  <benchmark name="SPEC-exec" outpath="#MASTER_WP_PATH#">
+  
+  <!-- ***************************************** -->
+  <!-- ********* GENERAL PARAM SETS ************ -->
+  <!-- ***************************************** -->
+  
+  <parameterset name="exec_common_pset" init_with="common_jube.xml:common_pset">
+      <parameter name="jube_master_benchmark_home">#MASTER_HOME#</parameter>
+  </parameterset>
+  
+  <parameterset name="exec_fixed_params">
+    <parameter name="application">#APPLICATION#</parameter>
+    <parameter name="app_name" mode="shell">echo $application | cut -d . -f 2 | cut -d _ -f 1 | tr -d '\n'</parameter>
+    <parameter name="problem_size">#PROBLEM_SIZE#</parameter>
+  </parameterset>
+
+  <parameterset name="exec_changing_params">
+    <parameter name="meas_state">#MEAS_STATES#</parameter>
+    <!-- base and profiler run use the same executable -->
+    <parameter name="meas_state_executable" mode="python">
+      {
+        'none' : 'profiler',
+      }.get('${meas_state}','${meas_state}')
+    </parameter>
+    <parameter name="compiler_variant">#COMPILER_VARIANTS#</parameter>
+    <parameter name="tool_variant" mode="python">'$compiler_variant'.split('-')[0]</parameter>
+  </parameterset>
+  
+  <parameterset name="spec_exec_system_pset">
+    <parameter name="preprocess">echo OMP_NUM_THREADS = $$OMP_NUM_THREADS;module li;</parameter>
+    <!-- parameter name="preprocess">echo $$OMP_NUM_THREADS;module li;sleep 15;</parameter -->
+    <parameter name="exe" mode="python" update_mode="use">
+        {
+            '350.md': 'md_omp_${tune}.${extension_executable}',
+            '352.nab': 'nabmd_${tune}.${extension_executable}',
+            '357.bt331': 'bt_${tune}.${extension_executable}',
+            '358.botsalgn': 'bots-alignment_${tune}.${extension_executable}',
+            '359.botsspar': 'bots-sparselu_${tune}.${extension_executable}',
+            '367.imagick': 'convert_${tune}.${extension_executable}',
+            '370.mgrid331': 'mg_${tune}.${extension_executable}',
+            '371.applu331': 'lu_${tune}.${extension_executable}',
+            '372.smithwa': 'smithwaterman_${tune}.${extension_executable}'
+        }.get('$application', '${app_name}_${tune}.${extension_executable}')</parameter>
+    <parameter name="executable" update_mode="use">./${exe}</parameter>
+    
+    <parameter name="args_exec" mode="python" separator="|"><!-- 367.imagick ref params not tested -->
+        {
+          '352.nab-ref': '1ea0 281910391',
+          '358.botsalgn-ref': '-f botsalgn',
+          '359.botsspar-ref': '-n 120 -m 501',
+          '363.swim-ref': chr(60)+' swim.in > swim.out',
+          '367.imagick-ref': 'input2.tga -shear 31 -resize 12000x9000 -negate -edge 14 -implode 1.2 -flop -convolve 1,2,1,4,3,4,1,2,1 -edge 100 -resize 800x600 output2.tga;./convert_${tune}.${extension} checks.tga -shear 31x14 -negate -edge 14 -resize 12288x12288 -implode 1.2 -flop -convolve 1,2,1,4,3,4,1,2,1 -edge 100 -resize 900x900 output9.tga;./convert_{tune}.{extension} checks.tga -resize 12000x12000 -morphology Convolve "5x5: 1.0,1.0,1.0,1.0,1.0 1.0,0.0,0.0,0.0,1.0 1.0,0.0,0.0,0.0,1.0 1.0,0.0,0.0,0.0,1.0 1.0,1.0,1.0,1.0,1.0 " -edge 60 -morphology Convolve Log:0x2 -negate -morphology Convolve Laplacian:7 -sharpen 10x0.2-32 -resize 600x600 output11.tga;./ImageValidator_{tune}.{extension} expected2.tga output2.tga;./ImageValidator_${tune}.${extension} expected9.tga output9.tga;./ImageValidator_${tune}.${extension} expected11.tga output11.tga',
+          '372.smithwa-ref': '41',
+          '376.kdtree-ref': '1400000 4 2',
+            
+          '352.nab-drd': 'gcn4p1 1850041461',
+          '358.botsalgn-drd': '-f botsalgn',
+          '359.botsspar-drd': '-n  120 -m  90',
+          '363.swim-drd': chr(60)+' swim.in > swim.out',
+          '367.imagick-drd' : '-shear 31 -resize 1280x960 -negate -edge 14 -implode 1.2 -flop -convolve 1,2,1,4,3,4,1,2,1 -edge 100 input1.tga output1.tga',
+          '372.smithwa-drd' : '35',
+          '376.kdtree-drd'  : '350000 10 2',
+        
+          #'352.nab-train': 'aminos 391519156',
+          '352.nab-train': 'gcn4 1850041461',
+          '358.botsalgn-train': '-f botsalgn',
+          '359.botsspar-train': '-n 100 -m 25',
+          '363.swim-train': chr(60)+' swim.in > swim.out',
+          '367.imagick-train':'-shear 31 -resize 1280x960 -negate -edge 14 -implode 1.2 -flop -convolve 1,2,1,4,3,4,1,2,1 -edge 100 input1.tga output1.tga;./ImageValidator_${tune}.${extension} expected1.tga output1.tga',
+          '372.smithwa-train': '32',
+          '376.kdtree-train': '400000 10 2',
+          
+          '352.nab-test': 'hkrdenq 1930344093',
+          '358.botsalgn-test': '-f botsalgn',
+          '359.botsspar-test': '-n 50 -m 25',
+          '363.swim-test': chr(60)+' swim.in > swim.out',
+          '367.imagick-test': '-shear 25 -resize 640x480 -negate -alpha Off input.tga output.tga;./ImageValidator_${tune}.${extension} expected.tga output.tga',
+          '372.smithwa-test': '30',
+          '376.kdtree-test': '100000 10 2'
+        }.get('$application-$problem_size', '')
+    </parameter>
+    <parameter name="postprocess" mode="python">
+        {'ixe-base':'inspxe-cl -report problems; echo "inspxe-cl -report status : $?"',
+         'ixe-detail':'inspxe-cl -report problems; echo "inspxe-cl -report status : $?"'
+        }.get('$compiler_variant', '')
+    </parameter>
+    
+    
+    <parameter name="exec_path">exe-${extension}</parameter>
+    <parameter name="exec_prefix" mode="python">
+        {'ixe-base':'inspxe-cl -collect ti2',
+         'ixe-detail':'inspxe-cl -collect ti3 -knob scope=extreme -knob stack-depth=16 -knob use-maximum-resources=true'
+        }.get('$compiler_variant', '')
+    </parameter>
+    <parameter name="spec_exec_file">spec-exec.sh</parameter>
+    <parameter name="spec_exec_template">${spec_exec_file}.in</parameter>
+  </parameterset>
+  
+  <!-- ***************************************** -->
+  <!-- ********* WARM-UP PARAM SETS ************ -->
+  <!-- ***************************************** -->
+  
+  <parameterset name="spec_warmup_pset" init_with="spec_config.xml:spec_config_pset">
+    <parameter name="spec_warmup_file">spec-warmup.sh</parameter>
+    <parameter name="tune">base</parameter>
+    <parameter name="extension">warmup</parameter>
+    <parameter name="extension_executable">base-profiler</parameter>
+  </parameterset>
+  
+  <step name="warmup" cycles="3">
+    <use>exec_common_pset</use>
+    <use>exec_fixed_params</use>
+    <use>spec_exec_system_pset</use>
+    <use>spec_warmup_pset</use>
+    <use from="spec_exec_subs.xml">spec_warmup_file</use>
+    <use from="spec_exec_subs.xml">spec_warmup_sub</use>
+    
+    <do active="$jube_wp_cycle==0">mkdir exe-warmup</do>
+    <do active="$jube_wp_cycle==0">ln -s #MASTER_WP_PATH#/build/exe-base-profiler/* ${jube_wp_abspath}/exe-warmup/</do>
+    <do break_file="done">bash ${spec_warmup_file}</do>
+  </step>
+  
+  <!-- ***************************************** -->
+  <!-- *********** EXEC PARAM SETS ************* -->
+  <!-- ***************************************** -->
+ 
+  <parameterset name="exec_measurement_pset" init_with="spec_config.xml:spec_config_pset">
+  
+    <parameter name="tune">base</parameter>
+    <parameter name="extension">${compiler_variant}-${meas_state}</parameter>
+    <parameter name="extension_executable">${compiler_variant}-${meas_state_executable}</parameter>
+  
+    <parameter name="flat_profile">#FLAT_PROFILE#</parameter>
+  
+    <!-- PAPI counters -->
+    <parameter name="papi_ctr">#PAPI_CTR#</parameter>
+    <parameter name="papi_sep">#PAPI_SEP#</parameter>
+    
+    <!-- Measurement tool libraries -->
+    <parameter name="tool_libs" mode="python">
+      {
+        'profiler'  : "$BASE_DIR/llvm/build-profiler/libompt_profiler.so",
+        'scorep'    : 'libompt_scorep.so'
+      }.get('${meas_state_executable}')
+    </parameter>
+    <parameter name="OMP_TOOL_LIBRARIES" export="true">"${tool_libs}"</parameter>
+    <parameter name="OMP_PLACES" export="true">cores</parameter>
+    <parameter name="OMP_PROC_BIND" export="true">close</parameter>
+    <parameter name="OMP_NUM_THREADS" export="true">#THREAD_NUM#</parameter>
+    
+    <!-- Profiler specific params -->
+   <parameter name="prof_tool_libs" mode="python">
+      {
+        'archer'  : 'libarcher.so'
+      }.get('${tool_variant}','')
+    </parameter>
+    <parameter name="PROFILER_TOOL_LIBRARIES" export="true">"${prof_tool_libs}"</parameter>
+    
+      <!--Profiler options to change between none and profiler measurement -->
+    <parameter name="exec_profiler_options" mode="python">
+    {  'none'        : 'timer=0 flat_profile=$flat_profile csv_outfile=output.csv',
+       'profiler'    : '$papi_ctr papi_sep=$papi_sep timer=1 flat_profile=$flat_profile csv_outfile=output.csv'
+    }.get('$meas_state','')
+    </parameter>
+    <parameter name="PROFILER_OPTIONS" export="true" separator=";">head_prefix="App","numthreads","variant", line_prefix="${application}","#THREAD_NUM#","${compiler_variant}", $exec_profiler_options</parameter>
+   
+    <!-- Score-P specific params (also set when Score-P not used) -->
+    <parameter name="sp_tool_libs" mode="python">
+      {
+        'archer'  : 'libarcher.so',
+      }.get('${tool_variant}', '')
+    </parameter>
+    <parameter name="SCOREP_TOOL_LIBRARIES" export="true">"${sp_tool_libs}"</parameter>
+    <parameter name="SCOREP_TOTAL_MEMORY" export="true" tag="scorep">3999MB</parameter>
+    
+  </parameterset>
+  
+  <parameterset name="spec_exec_drd_pset">
+    <!-- Tsan and Archer options -->
+    <parameter name="tsan_opts" mode="python">
+    {
+      'base'    : '',
+      'tsan'    : 'report_bugs=0 exitcode=0',
+      'archer'  : 'report_bugs=0 exitcode=0',
+      'tsan-noread'    : 'report_bugs=0 exitcode=0',
+      'archer-noread'  : 'report_bugs=0 exitcode=0',
+      'tsan-sampling'    : 'report_bugs=0 exitcode=0 sampling_level=8',
+      'archer-sampling'  : 'report_bugs=0 exitcode=0 sampling_level=8'
+    }.get('${compiler_variant}','')
+    </parameter>
+    <parameter name="TSAN_OPTIONS" export="true">"${tsan_opts}"</parameter>
+    <parameter name="arc_opts" mode="python">
+    {
+      'base'    : '',
+      'tsan'    : 'enable=0 verbose=1',
+      'archer'  : 'enable=1 verbose=1 print_max_rss=1',
+    }.get('${tool_variant}','')
+    </parameter>
+    <parameter name="ARCHER_OPTIONS" export="true">"${arc_opts}"</parameter>
+  </parameterset>
+  
+  <step name="exec" iterations="1">
+    <use>exec_common_pset</use>
+    <use>exec_fixed_params</use>
+    <use>exec_changing_params</use>
+    <use>spec_exec_system_pset</use>
+    <use>exec_measurement_pset</use>
+    <use>spec_exec_drd_pset</use>
+    <use>result_config_pset</use>
+    
+    <use from="spec_exec_subs.xml">spec_exec_file</use>
+    <use from="spec_exec_subs.xml">spec_exec_sub</use>
+    
+    <do>mkdir exe-$extension</do>
+    <do>ln -s #MASTER_WP_PATH#/build/exe-$extension_executable/* ${jube_wp_abspath}/exe-${extension}/</do>
+    <do>bash ${spec_exec_file}</do>
+  </step>
+  
+  <!-- ***************************************** -->
+  <!-- ************** ANALYSIS ***************** -->
+  <!-- ***************************************** -->
+  
+  <patternset name="spec_patched_output">
+      <pattern name="wtime" type="float">JUBE WALLTIME:\s*$jube_pat_fp</pattern>
+  </patternset>
+
+  <patternset name="hostname_output">
+      <pattern name="hostname">HOSTNAME=([^ ]*$)</pattern>
+  </patternset>
+
+  <patternset name="spec_ldd_output">
+      <pattern name="omp_runtime">lib.*omp.*.so => ([^ ]*)</pattern>
+  </patternset>
+
+  <patternset name="memory_usage_output">
+      <pattern name="mem_usage" type="int">MAX RSS\S* during execution: $jube_pat_int</pattern>
+  </patternset>
+
+  <analyser name="spec_analyzer">
+      <use>spec_patched_output</use>
+      <use>hostname_output</use>
+      <use>spec_ldd_output</use>
+      <use>memory_usage_output</use>
+      <analyse step="exec">
+          <file>exe-$extension/${executable}.ldd</file>
+          <file>stdout</file>
+          <file>exe-$extension/swim.out</file>
+      </analyse>
+  </analyser>
+
+  <parameterset name="result_config_pset">
+    <parameter name="config_string">"$extension"</parameter>
+    <parameter name="output_type_string">"${meas_state_executable}"</parameter>
+    <parameter name="thread_num_quoted">"#THREAD_NUM#"</parameter>
+    <parameter name="application_quoted">"${application}"</parameter>
+  </parameterset>
+
+  <result name="spec_result">
+      <use>spec_analyzer</use>
+          
+      <!-- </table> -->
+      <table name="time_csv" style="csv" sort="benchmark">
+          <column title='"application"'>application_quoted</column>
+          <column title='"config"'>config_string</column>
+          <column title='"numthreads"'>thread_num_quoted</column>
+          <column title='"output_type"'>output_type_string</column>
+          <column title='"wtime"' format="e">wtime_avg</column>
+          
+      </table>
+  </result>
+ 
+  </benchmark>
+  
+</jube>

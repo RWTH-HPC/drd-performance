@@ -1,0 +1,54 @@
+commit 2f52f4a9bfee3ce6ff7c4267708f52c66d57c06e
+Author: Joachim Protze <protze@itc.rwth-aachen.de>
+Date:   Sun Aug 1 20:54:42 2021 +0200
+
+    Add sampling support for shared reads
+
+diff --git a/compiler-rt/lib/tsan/rtl/tsan_flags.inc b/compiler-rt/lib/tsan/rtl/tsan_flags.inc
+index 7954a43..e5a83b0 100644
+--- a/compiler-rt/lib/tsan/rtl/tsan_flags.inc
++++ b/compiler-rt/lib/tsan/rtl/tsan_flags.inc
+@@ -82,3 +82,5 @@ TSAN_FLAG(bool, ignore_noninstrumented_modules, SANITIZER_MAC ? true : false,
+           "modules.")
+ TSAN_FLAG(bool, shared_ptr_interceptor, true,
+           "Track atomic reference counting in libc++ shared_ptr and weak_ptr.")
++TSAN_FLAG(int, sampling_level, 0, "Only log every 2^sampling_level read access, "
++          "that did not get stored in the inner loop.")
+diff --git a/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp b/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp
+index 46abdea..0255290 100644
+--- a/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp
++++ b/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp
+@@ -721,12 +721,19 @@ void MemoryAccessImpl1(ThreadState *thr, uptr addr,
+   }
+ #endif
+ 
++  static int sampling_level=flags()->sampling_level;
++  static int sampling_mask=(1<<sampling_level)-1;
+   // we did not find any races and had already stored
+   // the current access info, so we are done
+   if (LIKELY(stored))
+     return;
+   // choose a random candidate slot and replace it
+-  StoreShadow(shadow_mem + (cur.epoch() % kShadowCnt), store_word);
++  if (LIKELY(kAccessIsWrite || sampling_level==0)) {
++    StoreShadow(shadow_mem + (cur.epoch() % kShadowCnt), store_word);
++  } else {
++    if (((++(thr->sample_read_counter)) & sampling_mask) == 0)
++      StoreShadow(shadow_mem + (cur.epoch() % kShadowCnt), store_word);
++  }
+   return;
+  RACE:
+   HandleRace(thr, shadow_mem, cur, old);
+diff --git a/compiler-rt/lib/tsan/rtl/tsan_rtl.h b/compiler-rt/lib/tsan/rtl/tsan_rtl.h
+index 483459b..931130c 100644
+--- a/compiler-rt/lib/tsan/rtl/tsan_rtl.h
++++ b/compiler-rt/lib/tsan/rtl/tsan_rtl.h
+@@ -414,6 +414,8 @@ struct ThreadState {
+   const uptr tls_addr;
+   const uptr tls_size;
+   ThreadContext *tctx;
++  
++  u64 sample_read_counter{0};
+ 
+   DDLogicalThread *dd_lt;
+ 

@@ -1,0 +1,6 @@
+"applications","350.md","351.bwaves","352.nab","357.bt331","358.botsalgn","359.botsspar","360.ilbdc","362.fma3d","363.swim","367.imagick","370.mgrid331","371.applu331","372.smithwa","376.kdtree"
+"tnums","12","24","48"
+"counters","Time","MEM_INST_RETIRED:ALL_STORES","MEM_INST_RETIRED:ALL_LOADS","L1D:REPLACEMENT","L2_RQSTS:ALL_CODE_RD","L2_RQSTS:ALL_DEMAND_REFERENCES","L2_RQSTS:CODE_RD_MISS","LLC_REFERENCES","LLC_MISSES","L1D_W_A = L1D_W_H","L1D_R_H","L2D_H","L3D_A","L3_H","MEM"
+"variants","base","ixe-base","ixe-detail","archer-noread"
+"meas_states","none","profiler"
+"output_format","flat"

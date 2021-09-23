@@ -1,0 +1,76 @@
+commit 7b8b39f855546c1d7b76f3528b4f9643d658c6c0
+Author: Joachim Protze <protze@itc.rwth-aachen.de>
+Date:   Wed Aug 4 10:15:44 2021 +0200
+
+    Ignore fortran-flags
+
+diff --git a/clang/include/clang/Basic/DiagnosticDriverKinds.td b/clang/include/clang/Basic/DiagnosticDriverKinds.td
+index d27b83e..016396e 100644
+--- a/clang/include/clang/Basic/DiagnosticDriverKinds.td
++++ b/clang/include/clang/Basic/DiagnosticDriverKinds.td
+@@ -200,6 +200,9 @@ def err_arch_unsupported_isa
+ def err_drv_I_dash_not_supported : Error<
+   "'%0' not supported, please use -iquote instead">;
+ def err_drv_unknown_argument : Error<"unknown argument: '%0'">;
++def warn_drv_flang_argument : Warning<
++  "command line option '%0' is only valid in Flang mode (i.e. for Fortran input)">,
++  InGroup<UnknownArgument>;
+ def err_drv_unknown_argument_with_suggestion : Error<
+   "unknown argument '%0'; did you mean '%1'?">;
+ def warn_drv_unknown_argument_clang_cl : Warning<
+diff --git a/clang/lib/Driver/Driver.cpp b/clang/lib/Driver/Driver.cpp
+index 5c323cb..d93e3fa 100644
+--- a/clang/lib/Driver/Driver.cpp
++++ b/clang/lib/Driver/Driver.cpp
+@@ -244,20 +244,44 @@ InputArgList Driver::ParseArgStrings(ArrayRef<const char *> ArgStrings,
+   }
+ 
+   for (const Arg *A : Args.filtered(options::OPT_UNKNOWN)) {
+-    unsigned DiagID;
++    // The default diagnostic when the option is unknown
++    unsigned DiagID = diag::err_drv_unknown_argument;
++
++    // Try to find a good hint for the user
+     auto ArgString = A->getAsString(Args);
+     std::string Nearest;
+-    if (getOpts().findNearest(
+-          ArgString, Nearest, IncludedFlagsBitmask, ExcludedFlagsBitmask) > 1) {
+-      DiagID = IsCLMode() ? diag::warn_drv_unknown_argument_clang_cl
+-                          : diag::err_drv_unknown_argument;
+-      Diags.Report(DiagID) << ArgString;
+-    } else {
++    unsigned Distance = getOpts().findNearest(
++        ArgString, Nearest, IncludedFlagsBitmask, ExcludedFlagsBitmask);
++    assert(Distance != 0 && "This option should not be 'unknown'");
++
++    if (Distance == 1) {
++      // Found a good suggestion - propose that through a diagnostic
+       DiagID = IsCLMode()
+                    ? diag::warn_drv_unknown_argument_clang_cl_with_suggestion
+                    : diag::err_drv_unknown_argument_with_suggestion;
+       Diags.Report(DiagID) << ArgString << Nearest;
++    } else {
++      // No good suggestion was found - issue an error (default) or a warning.
++      // The actual diagnostic depends on the mode in which the driver operates
++      if (IsCLMode())
++        // In CL mode just warn the user (MSVC consumes everything anyway)
++        DiagID = diag::warn_drv_unknown_argument_clang_cl;
++      else if (!IsFlangMode()) {
++        // In non-Flang mode, warn _if_ this is a Flang-only flag. Clang will
++        // reject/ignore these, but like in GCC, this shouldn't be an error.
++        // TODO: Currently this will only work for non-alias options. Options
++        // that are aliases are internally stored as their non-alias versions.
++        // When mixed with `OPT_UNKNOWN`, this seems to confuse `findNearest`.
++        unsigned ExcludedFlagsBitmaskWithFlang =
++            ExcludedFlagsBitmask & ~options::FlangOnlyOption;
++        if (getOpts().findNearest(ArgString, Nearest, IncludedFlagsBitmask,
++                                  ExcludedFlagsBitmaskWithFlang) == 0)
++          DiagID = diag::warn_drv_flang_argument;
++      } // TODO: In Flang-mode, check whether this is a Clang-only flag.
++
++      Diags.Report(DiagID) << ArgString;
+     }
++
+     ContainsError |= Diags.getDiagnosticLevel(DiagID, SourceLocation()) >
+                      DiagnosticsEngine::Warning;
+   }

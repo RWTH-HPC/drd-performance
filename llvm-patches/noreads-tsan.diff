@@ -1,0 +1,19 @@
+commit 47a605f69953a2fa8378559ebb4d708e49f9a5f8
+Author: Joachim Protze <protze@itc.rwth-aachen.de>
+Date:   Mon Aug 2 00:13:48 2021 +0200
+
+    Dropping all shared reads
+
+diff --git a/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp b/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp
+index 46abdea..6edea62 100644
+--- a/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp
++++ b/compiler-rt/lib/tsan/rtl/tsan_rtl.cpp
+@@ -725,6 +725,8 @@ void MemoryAccessImpl1(ThreadState *thr, uptr addr,
+   // the current access info, so we are done
+   if (LIKELY(stored))
+     return;
++  if(LIKELY(!kAccessIsWrite))
++    return;
+   // choose a random candidate slot and replace it
+   StoreShadow(shadow_mem + (cur.epoch() % kShadowCnt), store_word);
+   return;

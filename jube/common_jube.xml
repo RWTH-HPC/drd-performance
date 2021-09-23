@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part of the Data Race Performance Benchmark, under the Apache License v2.0.
+  See LICENSE for license information.
+  SPDX-License-Identifier: Apache-2.0
+-->
+<jube>
+
+    <parameterset name="common_pset">
+        <parameter name="softwaredir">${jube_master_benchmark_home}/../software</parameter>
+        <parameter name="runtimedir">$${SCOREP_ROOT}/lib</parameter>
+        <parameter name="templatedir">${jube_master_benchmark_home}/../templates</parameter>
+        <parameter name="patchesdir">${jube_master_benchmark_home}/../patches</parameter>
+    </parameterset>
+
+</jube>
